@@ -1,7 +1,8 @@
 import os
 from flask import Flask, current_app
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy import Integer, String
 import click
 from flask.cli import with_appcontext
 
@@ -10,6 +11,23 @@ class Base(DeclarativeBase):
 
 db = SQLAlchemy(model_class=Base)
 
+class User(db.Model):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    username: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    email: Mapped[str] = mapped_column(String)
+    
+    def __repr__(self) -> str:
+        return f"<User {self.username}>"
+
+class Post(db.Model):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    title: Mapped[str] = mapped_column(String, nullable=False)
+    body: Mapped[str] = mapped_column(String)
+    author_id: Mapped[int] = mapped_column(Integer, db.ForeignKey("user.id"))
+    author: Mapped["User"] = db.relationship("User", back_populates="posts")
+    
+    def __repr__(self) -> str:
+        return f"<Post {self.title}>"
 
 @click.command('init-db')
 def init_db_command():

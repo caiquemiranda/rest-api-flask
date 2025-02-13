@@ -20,7 +20,7 @@ def handle_user():
 
 def _list_users():
     query = db.select(User)
-    users = db.session.execute(query).scalar()
+    users = db.session.execute(query).scalars()
     return [
         {
             "id": user.id,

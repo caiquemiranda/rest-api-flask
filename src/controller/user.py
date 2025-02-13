@@ -4,7 +4,7 @@ from http import HTTPStatus
 
 app = Blueprint('user', __name__, url_prefix='/users')
 
-def create_user():
+def _create_user():
     data = request.json
     user = User(username=data["username"])
     db.session.add(user)
@@ -13,7 +13,27 @@ def create_user():
 @app.route("/", methods=['GET', 'POST'])
 def handle_user():
     if request.method == 'POST':
-        create_user()
+        _create_user()
         return {"message": "User created"}, HTTPStatus.CREATED
     else:
-        return {"users":[]}
+        return {"users":_list_users()}
+
+def _list_users():
+    query = db.select(User)
+    users = db.session.execute(query).scalar()
+    return [
+        {
+            "id": user.id,
+            "username": user.username,
+        }
+        for user in users
+    ]
+    
+@app.route('/<int:user_id>')
+def get_user(user_id):
+    user = db.get_or_404(User, user_id)
+    return {
+        "id": user.id,
+        "username": user.username,
+    }
+    
